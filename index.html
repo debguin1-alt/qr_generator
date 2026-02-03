@@ -1,32 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>QR Code Generator</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="box">
-        <h2>QR Generator</h2>
-        <p>Paste a link and instantly share it as a QR code</p>
 
-        <input type="url" id="urlInput" placeholder="https://example.com">
+<div class="box">
+    <h2>QR Code Generator</h2>
+    <p>Paste a link and generate a QR instantly</p>
 
-        <button id="btn">Generate QR</button>
+    <input type="url" id="urlInput" placeholder="https://example.com">
 
-        <div class="qr-area">
-            <img id="qrImage" alt="QR Code">
-        </div>
+    <button id="btn">Generate QR</button>
 
-        <div class="actions">
-            <button id="copyBtn">Copy Link</button>
-            <button id="shareBtn">Share</button>
-            <button id="downloadBtn">Download</button>
-        </div>
+    <div class="qr-area">
+        <img id="qrImage" alt="QR Code">
     </div>
 
-    <script src="app.js"></script>
+    <div class="actions">
+        <button id="copyBtn">Copy</button>
+        <button id="shareBtn">Share</button>
+        <button id="downloadBtn">Download</button>
+    </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
