@@ -6,32 +6,45 @@ const copyBtn = document.getElementById("copyBtn");
 const shareBtn = document.getElementById("shareBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 
-btn.addEventListener("click", () => {
-    if (!urlInput.value) return;
+let currentURL = "";
 
-    const url = encodeURIComponent(urlInput.value);
-    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${url}`;
-    qrImage.classList.add("show");
+// Generate QR
+btn.addEventListener("click", () => {
+    if (!urlInput.value.trim()) {
+        alert("Please enter a valid URL");
+        return;
+    }
+
+    currentURL = urlInput.value.trim();
+    const encoded = encodeURIComponent(currentURL);
+
+    qrImage.src =
+        `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}`;
+
+    qrImage.onload = () => qrImage.classList.add("show");
 });
 
 // Copy link
 copyBtn.addEventListener("click", () => {
-    if (!urlInput.value) return;
-    navigator.clipboard.writeText(urlInput.value);
-    copyBtn.innerText = "Copied!";
-    setTimeout(() => copyBtn.innerText = "Copy Link", 1500);
+    if (!currentURL) return;
+
+    navigator.clipboard.writeText(currentURL);
+    copyBtn.textContent = "Copied!";
+    setTimeout(() => copyBtn.textContent = "Copy", 1500);
 });
 
-// Share
+// Share link
 shareBtn.addEventListener("click", async () => {
-    if (!urlInput.value) return;
+    if (!currentURL) return;
 
     if (navigator.share) {
-        await navigator.share({
-            title: "QR Code",
-            text: "Check this link",
-            url: urlInput.value
-        });
+        try {
+            await navigator.share({
+                title: "QR Code",
+                text: "Scan this QR or open the link",
+                url: currentURL
+            });
+        } catch (e) {}
     } else {
         alert("Sharing not supported on this device");
     }
@@ -41,8 +54,10 @@ shareBtn.addEventListener("click", async () => {
 downloadBtn.addEventListener("click", () => {
     if (!qrImage.src) return;
 
-    const a = document.createElement("a");
-    a.href = qrImage.src;
-    a.download = "qr-code.png";
-    a.click();
+    const link = document.createElement("a");
+    link.href = qrImage.src;
+    link.download = "qr-code.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 });
