@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>QR Code Generator</title>
+
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#764ba2">
 </head>
 
 <body>
@@ -14,7 +17,6 @@
     <p>Paste a link and generate a QR instantly</p>
 
     <input type="url" id="urlInput" placeholder="https://example.com">
-
     <button id="btn">Generate QR</button>
 
     <div class="qr-area">
@@ -29,5 +31,12 @@
 </div>
 
 <script src="app.js"></script>
+
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+}
+</script>
+
 </body>
 </html>
