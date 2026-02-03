@@ -12,72 +12,87 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #76FF7B;
-    flex-direction: column;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    animation: bgMove 8s infinite alternate;
+}
+
+@keyframes bgMove {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(25deg); }
 }
 
 .box {
-    width: 450px;
-    height: 240px;
+    width: 360px;
     padding: 30px;
-    background-color: #FF69AF;
-    color: white;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transform: height 0.2s ease;
-}
-
-.box.active {
-    height: 470px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
 }
 
 .box h2 {
-    text-align: center;
+    font-weight: 600;
+    margin-bottom: 8px;
 }
 
 .box p {
-    text-align: justify;
-    margin: 10px 0px;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 20px;
 }
 
-.box input[type="url"] {
+input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid black;
-    outline: none;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-}
-
-.box input[type="submit"] {
-    width: 100%;
-    padding: 10px;
+    padding: 12px;
+    border-radius: 10px;
     border: none;
     outline: none;
-    border-radius: 3px;
     font-size: 1rem;
-    color: white;
-    background-color: #5729CE;
+    margin-bottom: 15px;
 }
 
-.box img {
-    width: 200px;
+button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #ff7a18;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.qr-area {
     margin-top: 20px;
+}
+
+.qr-area img {
+    width: 200px;
     opacity: 0;
+    transform: scale(0.8);
+    transition: 0.4s ease;
 }
 
-.box.active img {
+.qr-area img.show {
     opacity: 1;
-    pointer-events: none;
-    transition: opacity 0.2s 0.2s ease;
+    transform: scale(1);
 }
 
-@media screen and (max-width: 768px) {
-    .box {
-        width: 90vw;
-        height: auto;
-    }
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.actions button {
+    flex: 1;
+    background: #ffffff22;
 }
