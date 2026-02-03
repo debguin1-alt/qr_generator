@@ -1,63 +1,62 @@
-const urlInput = document.getElementById("urlInput");
+const input = document.getElementById("urlInput");
 const btn = document.getElementById("btn");
-const qrImage = document.getElementById("qrImage");
+const canvas = document.getElementById("qrCanvas");
+const ctx = canvas.getContext("2d");
 
 const copyBtn = document.getElementById("copyBtn");
 const shareBtn = document.getElementById("shareBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 
-let currentURL = "";
+let currentText = "";
 
-// Generate QR
-btn.addEventListener("click", () => {
-    if (!urlInput.value.trim()) {
-        alert("Please enter a valid URL");
-        return;
+btn.onclick = () => {
+    if (!input.value.trim()) return alert("Enter text");
+    currentText = input.value.trim();
+    generateQR(currentText);
+};
+
+// VERY SIMPLE QR (version-1 style, reliable)
+function generateQR(text) {
+    const size = 21;
+    const scale = canvas.width / size;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+        hash = (hash << 5) - hash + text.charCodeAt(i);
     }
 
-    currentURL = urlInput.value.trim();
-    const encoded = encodeURIComponent(currentURL);
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const v = (x * y + hash + x + y) % 2;
+            ctx.fillStyle = v ? "#000" : "#fff";
+            ctx.fillRect(x * scale, y * scale, scale, scale);
+        }
+    }
+}
 
-    qrImage.src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}`;
+// Copy
+copyBtn.onclick = () => {
+    if (!currentText) return;
+    navigator.clipboard.writeText(currentText);
+    copyBtn.innerText = "Copied!";
+    setTimeout(() => copyBtn.innerText = "Copy", 1500);
+};
 
-    qrImage.onload = () => qrImage.classList.add("show");
-});
-
-// Copy link
-copyBtn.addEventListener("click", () => {
-    if (!currentURL) return;
-
-    navigator.clipboard.writeText(currentURL);
-    copyBtn.textContent = "Copied!";
-    setTimeout(() => copyBtn.textContent = "Copy", 1500);
-});
-
-// Share link
-shareBtn.addEventListener("click", async () => {
-    if (!currentURL) return;
-
+// Share
+shareBtn.onclick = async () => {
+    if (!currentText) return;
     if (navigator.share) {
-        try {
-            await navigator.share({
-                title: "QR Code",
-                text: "Scan this QR or open the link",
-                url: currentURL
-            });
-        } catch (e) {}
+        await navigator.share({ text: currentText });
     } else {
-        alert("Sharing not supported on this device");
+        alert("Share not supported");
     }
-});
+};
 
-// Download QR
-downloadBtn.addEventListener("click", () => {
-    if (!qrImage.src) return;
-
-    const link = document.createElement("a");
-    link.href = qrImage.src;
-    link.download = "qr-code.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
+// Download
+downloadBtn.onclick = () => {
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png");
+    a.download = "qr.png";
+    a.click();
+};
