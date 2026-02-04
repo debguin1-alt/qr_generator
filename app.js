@@ -50,14 +50,11 @@ shareBtn.addEventListener("click", async () => {
     }
 });
 
-// Download QR
-downloadBtn.addEventListener("click", () => {
-    if (!qrImage.src) return;
-
-    const link = document.createElement("a");
-    link.href = qrImage.src;
-    link.download = "qr-code.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
+/* ===== DOWNLOAD TO LOCAL STORAGE ===== */
+function downloadQR(){
+    const c=document.getElementById("qr");
+    const a=document.createElement("a");
+    a.href=c.toDataURL("image/png");
+    a.download="qr-code.png";
+    a.click();
+}
