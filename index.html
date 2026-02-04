@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Offline QR Generator</title>
+<title>QR Code Generator</title>
 
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
@@ -13,14 +13,14 @@
 <body>
 
 <div class="box">
-    <h2>Offline QR Generator</h2>
-    <p>Works even without internet</p>
+    <h2>QR Code Generator</h2>
+    <p>Paste a link and generate a QR instantly</p>
 
-    <input type="text" id="urlInput" placeholder="Enter text or URL">
+    <input type="url" id="urlInput" placeholder="https://example.com">
     <button id="btn">Generate QR</button>
 
     <div class="qr-area">
-        <canvas id="qrCanvas" width="200" height="200"></canvas>
+        <img id="qrImage" alt="QR Code">
     </div>
 
     <div class="actions">
