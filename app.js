@@ -8,7 +8,7 @@ const downloadBtn = document.getElementById("downloadBtn");
 
 let currentURL = "";
 
-// Generate QR
+/* ================= GENERATE QR ================= */
 btn.addEventListener("click", () => {
     if (!urlInput.value.trim()) {
         alert("Please enter a valid URL");
@@ -18,13 +18,36 @@ btn.addEventListener("click", () => {
     currentURL = urlInput.value.trim();
     const encoded = encodeURIComponent(currentURL);
 
-    qrImage.src =
+    const qrURL =
         `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encoded}`;
 
-    qrImage.onload = () => qrImage.classList.add("show");
+    qrImage.src = qrURL;
+
+    qrImage.onload = () => {
+        qrImage.classList.add("show");
+
+        // 🔥 Save to localStorage
+        localStorage.setItem("lastQRUrl", qrURL);
+        localStorage.setItem("lastQRText", currentURL);
+    };
 });
 
-// Copy link
+/* ================= RESTORE LAST QR ================= */
+window.addEventListener("load", () => {
+    const savedQR = localStorage.getItem("lastQRUrl");
+    const savedText = localStorage.getItem("lastQRText");
+
+    if (savedQR) {
+        qrImage.src = savedQR;
+        qrImage.classList.add("show");
+    }
+    if (savedText) {
+        urlInput.value = savedText;
+        currentURL = savedText;
+    }
+});
+
+/* ================= COPY LINK ================= */
 copyBtn.addEventListener("click", () => {
     if (!currentURL) return;
 
@@ -33,7 +56,7 @@ copyBtn.addEventListener("click", () => {
     setTimeout(() => copyBtn.textContent = "Copy", 1500);
 });
 
-// Share link
+/* ================= SHARE LINK ================= */
 shareBtn.addEventListener("click", async () => {
     if (!currentURL) return;
 
@@ -50,11 +73,14 @@ shareBtn.addEventListener("click", async () => {
     }
 });
 
-/* ===== DOWNLOAD TO LOCAL STORAGE ===== */
-function downloadQR(){
-    const c=document.getElementById("qr");
-    const a=document.createElement("a");
-    a.href=c.toDataURL("image/png");
-    a.download="qr-code.png";
+/* ================= DOWNLOAD TO DEVICE ================= */
+downloadBtn.addEventListener("click", () => {
+    if (!qrImage.src) return;
+
+    const a = document.createElement("a");
+    a.href = qrImage.src;
+    a.download = "qr-code.png";
+    document.body.appendChild(a);
     a.click();
-}
+    document.body.removeChild(a);
+});
