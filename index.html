@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --accent: #00f5a0;
+      --accent2: #00d9f5;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+      --border: #2a2a3f;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 80px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,160,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,160,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 760px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header .tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    header h1 {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      padding: 14px 18px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    button {
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 24px;
+      transition: all 0.2s;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #0a0a0f;
+      white-space: nowrap;
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,245,160,0.3);
+    }
+
+    .btn-generate:active { transform: translateY(0); }
+
+    .btn-generate:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .qr-output {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .qr-output.visible { display: flex; }
+
+    #qrcode {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    #qrcode canvas, #qrcode img { display: block; }
+
+    .download-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-dl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-dl:hover { transform: translateY(-1px); }
+    .btn-dl.png:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-dl.jpg:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    .format-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    .btn-dl.png .format-badge { background: rgba(0,245,160,0.15); color: var(--accent); }
+    .btn-dl.jpg .format-badge { background: rgba(0,217,245,0.15); color: var(--accent2); }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .history-header h2 { font-size: 18px; font-weight: 700; }
+
+    .history-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-track { background: var(--surface); }
+    .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .history-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .history-item-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .history-item-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .btn-reuse {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .btn-reuse:hover { border-color: var(--accent); color: var(--accent); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+    }
+
+    .status-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .status-msg.error {
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.3);
+      color: #ff8080;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <div class="tag">// utility tool</div>
+      <h1>QR Generator</h1>
+    </header>
+
+    <div class="card">
+      <div class="input-row">
+        <input type="text" id="qrInput" placeholder="Enter URL or text to encode…" autocomplete="off"/>
+        <button class="btn-generate" id="generateBtn" onclick="generateQR()">Generate</button>
+      </div>
+
+      <div class="qr-output" id="qrOutput">
+        <div id="qrcode"></div>
+
+        <div class="download-group">
+          <button class="btn-dl png" onclick="downloadQR('png')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download <span class="format-badge">PNG</span>
+          </button>
+          <button class="btn-dl jpg" onclick="downloadQR('jpg')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download <span class="format-badge">JPG</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="history-header">
+        <h2>Generation History</h2>
+        <span class="history-count" id="historyCount">0 entries</span>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="empty-state">Loading history…</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc,
+      onSnapshot, orderBy, query, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCo0SY6HGI6pJrZRJGQh3cRb4aB_UMbuQ0",
+      authDomain: "tuition-fee-management-80737.firebaseapp.com",
+      projectId: "tuition-fee-management-80737",
+      storageBucket: "tuition-fee-management-80737.firebasestorage.app",
+      messagingSenderId: "916921398798",
+      appId: "1:916921398798:web:edd4ee42f4cc5dbe562e5f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const qrCol = collection(db, "qr_history");
+
+    // Silent save — no UI feedback whatsoever
+    window._silentSave = (text) => {
+      addDoc(qrCol, { text, createdAt: serverTimestamp() }).catch(() => {});
+    };
+
+    // Real-time history listener
+    const q = query(qrCol, orderBy("createdAt", "desc"));
+    onSnapshot(q, (snap) => {
+      const list = document.getElementById("historyList");
+      const count = document.getElementById("historyCount");
+      count.textContent = `${snap.size} entr${snap.size === 1 ? 'y' : 'ies'}`;
+
+      if (snap.empty) {
+        list.innerHTML = '<div class="empty-state">No QR codes generated yet</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      snap.docs.forEach(doc => {
+        const { text, createdAt } = doc.data();
+        const date = createdAt?.toDate();
+        const timeStr = date
+          ? date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+          : 'Just now';
+
+        const el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML = `
+          <span class="history-item-text" title="${esc(text)}">${esc(text)}</span>
+          <span class="history-item-meta">${timeStr}</span>
+          <button class="btn-reuse" onclick="reuseText('${esc(text).replace(/'/g,"\\'")}')">Reuse</button>
+        `;
+        list.appendChild(el);
+      });
+    }, () => {
+      document.getElementById("historyList").innerHTML =
+        '<div class="empty-state">Could not load history — check Firestore rules.</div>';
+    });
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+
+  <script>
+    window.reuseText = (text) => {
+      document.getElementById('qrInput').value = text;
+      generateQR();
+    };
+
+    window.generateQR = () => {
+      const input = document.getElementById('qrInput').value.trim();
+      const statusMsg = document.getElementById('statusMsg');
+      statusMsg.className = 'status-msg';
+
+      if (!input) {
+        statusMsg.className = 'status-msg error';
+        statusMsg.textContent = 'Please enter some text or a URL.';
+        return;
+      }
+
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      btn.textContent = 'Generating…';
+      document.getElementById('qrcode').innerHTML = '';
+
+      try {
+        new QRCode(document.getElementById('qrcode'), {
+          text: input,
+          width: 220,
+          height: 220,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+
+        document.getElementById('qrOutput').classList.add('visible');
+
+        // Silently save — user never sees this happen
+        if (window._silentSave) window._silentSave(input);
+
+      } catch {
+        statusMsg.className = 'status-msg error';
+        statusMsg.textContent = 'Failed to generate QR code.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+      }
+    };
+
+    window.downloadQR = (format) => {
+      const canvas = document.querySelector('#qrcode canvas');
+      if (!canvas) return;
+
+      const link = document.createElement('a');
+
+      if (format === 'png') {
+        link.download = 'qrcode.png';
+        link.href = canvas.toDataURL('image/png');
+      } else {
+        // JPG needs white background (no alpha channel)
+        const offscreen = document.createElement('canvas');
+        offscreen.width = canvas.width;
+        offscreen.height = canvas.height;
+        const ctx = offscreen.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, offscreen.width, offscreen.height);
+        ctx.drawImage(canvas, 0, 0);
+        link.download = 'qrcode.jpg';
+        link.href = offscreen.toDataURL('image/jpeg', 0.95);
+      }
+
+      link.click();
+    };
+
+    document.getElementById('qrInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') generateQR();
+    });
+  </script>
+</body>
+</html>
