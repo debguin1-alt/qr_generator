@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --accent: #00f5a0;
+      --accent2: #00d9f5;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+      --border: #2a2a3f;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 80px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,160,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,160,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header .tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: clamp(2.8rem, 14vw, 5rem);
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+    }
+
+    /* ── Input row ── */
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      padding: 16px 18px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    button {
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-generate {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #0a0a0f;
+      font-size: 15px;
+      border-radius: 12px;
+      padding: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-generate:active { opacity: 0.82; transform: scale(0.98); }
+
+    .btn-generate:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── QR Output ── */
+    .qr-output {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding-top: 28px;
+    }
+
+    .qr-output.visible { display: flex; }
+
+    #qrcode {
+      background: #fff;
+      padding: 14px;
+      border-radius: 14px;
+      display: inline-block;
+      box-shadow: 0 0 48px rgba(0,245,160,0.15);
+    }
+
+    #qrcode canvas, #qrcode img { display: block; }
+
+    /* ── Download buttons ── */
+    .download-group {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .btn-dl {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 13px 10px;
+      border-radius: 10px;
+      transition: all 0.15s;
+    }
+
+    .btn-dl:active { transform: scale(0.97); }
+    .btn-dl.png:active, .btn-dl.png:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,245,160,0.07); }
+    .btn-dl.jpg:active, .btn-dl.jpg:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(0,217,245,0.07); }
+
+    .format-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+    }
+
+    .btn-dl.png .format-badge { background: rgba(0,245,160,0.15); color: var(--accent); }
+    .btn-dl.jpg .format-badge { background: rgba(0,217,245,0.15); color: var(--accent2); }
+
+    /* ── Error ── */
+    .status-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .status-msg.error {
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.3);
+      color: #ff8080;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <div class="tag">// utility tool</div>
+      <h1>QR Generator</h1>
+    </header>
+
+    <div class="card">
+      <div class="input-row">
+        <input type="text" id="qrInput" placeholder="Enter URL or text…" autocomplete="off"/>
+        <button class="btn-generate" id="generateBtn" onclick="generateQR()">Generate</button>
+      </div>
+
+      <div class="qr-output" id="qrOutput">
+        <div id="qrcode"></div>
+        <div class="download-group">
+          <button class="btn-dl png" onclick="downloadQR('png')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download <span class="format-badge">PNG</span>
+          </button>
+          <button class="btn-dl jpg" onclick="downloadQR('jpg')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download <span class="format-badge">JPG</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+  </div>
+
+  <!-- Firebase: silent background save, zero UI -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyCo0SY6HGI6pJrZRJGQh3cRb4aB_UMbuQ0",
+      authDomain: "tuition-fee-management-80737.firebaseapp.com",
+      projectId: "tuition-fee-management-80737",
+      storageBucket: "tuition-fee-management-80737.firebasestorage.app",
+      messagingSenderId: "916921398798",
+      appId: "1:916921398798:web:edd4ee42f4cc5dbe562e5f"
+    });
+
+    const col = collection(getFirestore(app), "qr_history");
+
+    window._silentSave = (text) => {
+      addDoc(col, { text, createdAt: serverTimestamp() }).catch(() => {});
+    };
+  </script>
+
+  <script>
+    window.generateQR = () => {
+      const input = document.getElementById('qrInput').value.trim();
+      const statusMsg = document.getElementById('statusMsg');
+      statusMsg.className = 'status-msg';
+
+      if (!input) {
+        statusMsg.className = 'status-msg error';
+        statusMsg.textContent = 'Please enter some text or a URL.';
+        return;
+      }
+
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true;
+      btn.textContent = 'Generating…';
+      document.getElementById('qrcode').innerHTML = '';
+
+      try {
+        new QRCode(document.getElementById('qrcode'), {
+          text: input,
+          width: 240,
+          height: 240,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+
+        document.getElementById('qrOutput').classList.add('visible');
+
+        // Silent — no badge, no indicator
+        if (window._silentSave) window._silentSave(input);
+
+      } catch {
+        statusMsg.className = 'status-msg error';
+        statusMsg.textContent = 'Failed to generate QR code.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+      }
+    };
+
+    window.downloadQR = (format) => {
+      const canvas = document.querySelector('#qrcode canvas');
+      if (!canvas) return;
+      const link = document.createElement('a');
+      if (format === 'png') {
+        link.download = 'qrcode.png';
+        link.href = canvas.toDataURL('image/png');
+      } else {
+        const off = document.createElement('canvas');
+        off.width = canvas.width;
+        off.height = canvas.height;
+        const ctx = off.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, off.width, off.height);
+        ctx.drawImage(canvas, 0, 0);
+        link.download = 'qrcode.jpg';
+        link.href = off.toDataURL('image/jpeg', 0.95);
+      }
+      link.click();
+    };
+
+    document.getElementById('qrInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') generateQR();
+    });
+  </script>
+</body>
+</html>
